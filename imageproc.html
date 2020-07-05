@@ -1,0 +1,560 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.6.0/css/bootstrap4-toggle.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
+
+    <title>COMP4431 Multimedia Computing - Image Processor</title>
+
+    <style>
+    body { min-width: 1020px; }
+    .main { min-width: 1020px; width: 1020px; margin-top: 10px; }
+    .container-fluid { margin-top: 10px; }
+    .nav-item { width: 25%; }
+    .nav-tabs, .nav-tabs .dropdown-item { font-size: 14px; }
+    .toggle { height: 38px !important; }
+    canvas { border: 1px solid black; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-dark bg-dark navbar-fixed-top">
+        <div class="navbar-header">
+            <span class="navbar-brand">Image Processor</span>
+        </div>
+    </nav>
+
+    <div class="main container">
+        <div class="row">
+            <div class="col-6">
+                <h5>Input Image</h5>
+                <canvas id="input" width="480" height="360"></canvas>
+                <div class="form-inline">
+                    <div class="input-group">
+                        <div class="input-group-prepend"><span class="input-group-text">Image</span></div>
+                        <select class="custom-select" id="input-image">
+                            <option value="hkust.png">HKUST</option>
+                            <option value="batman.png">Batman</option>
+                            <option value="superman.png">Superman</option>
+                            <option value="cap.png">Captain America</option>
+                            <option value="thanos.png">Thanos</option>
+                            <option value="trooper.png">Stormtroopers</option>
+                            <option value="oldhongkong1.png">Old Hong Kong 1</option> <!-- from gwulo.com -->
+                            <option value="oldhongkong2.png">Old Hong Kong 2</option> <!-- from oldhkphoto.com -->
+                            <option value="grayscale.png">Grayscale Test</option>
+                            <option value="Lena_test.png">Lena Test</option>          <!-- USM debugging -->
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6">
+                <h5>Output Image</h5>
+                <canvas id="output" width="480" height="360"></canvas>
+                <div class="form-inline">
+                    <button id="output-update" class="btn btn-info"><i class="fas fa-sync"></i> Update Output</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="row"><div class="col-12">&nbsp;</div></div>
+
+        <div class="row">
+            <div class="col-12">
+                <!-- Nav tabs -->
+                <ul class="nav nav-tabs nav-fill">
+
+                    <!-- Basic processing -->
+                    <li class="nav-item dropdown" id="basic-dropdown">
+                        <a class="nav-link dropdown-toggle active" data-toggle="dropdown" href="#">Basic processing<br><span class="title"><i>Do Nothing</i></span>
+                        <span class="caret"></span></a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#no-op"><i>Do Nothing</i></a></li>
+                            <li><a class="dropdown-item" href="#negation">Negation</a></li>
+                            <li><a class="dropdown-item" href="#grayscale">GrayScale</a></li>
+                            <li><a class="dropdown-item" href="#brightness">Brightness</a></li>
+                            <li><a class="dropdown-item" href="#contrast">Contrast</a></li>
+                            <li><a class="dropdown-item" href="#posterization">Posterization</a></li>
+                            <li><a class="dropdown-item" href="#threshold">Threshold</a></li>
+                            <li><a class="dropdown-item" href="#comic-color">Comic Colour</a></li>
+                            <li><a class="dropdown-item" href="#auto-contrast">Automatic Contrast</a></li>
+                            <li><a class="dropdown-item" href="#unsharp-mask">Unsharp Masking</a></li>
+                        </ul>
+                    </li>
+
+                    <!-- Base layer -->
+                    <li class="nav-item dropdown" id="base-dropdown">
+                        <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">Base Layer<br><span class="title"><i>Do Nothing</i></span>
+                        <span class="caret"></span></a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#no-op"><i>Do Nothing</i></a></li>
+                            <li><a class="dropdown-item" href="#blur">Blur</a></li>
+                            <li><a class="dropdown-item" href="#gaussian-blur">Gaussian Blur</a></li>
+                            <li><a class="dropdown-item" href="#kuwahara">Kuwahara Filter</a></li>
+                        </ul>
+                    </li>
+
+                    <!-- Shade layer -->
+                    <li class="nav-item dropdown" id="shade-dropdown">
+                        <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">Shade Layer<br><span class="title"><i>Do Nothing</i></span>
+                        <span class="caret"></span></a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#no-op"><i>Do Nothing</i></a></li>
+                            <li><a class="dropdown-item" href="#dither">Ordered Dithering</a></li>
+                        </ul>
+                    </li>
+
+                    <!-- Outline layer -->
+                    <li class="nav-item dropdown" id="outline-dropdown">
+                        <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">Outline Layer<br><span class="title"><i>Do Nothing</i></span>
+                        <span class="caret"></span></a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#no-op"><i>Do Nothing</i></a></li>
+                            <li><a class="dropdown-item" href="#sobel">Sobel Edge</a></li>
+                        </ul>
+                    </li>
+
+                </ul>
+
+                <!-- Tab panes -->
+                <div class="tab-content">
+
+                    <!-- No op -->
+                    <div class="tab-pane active" id="no-op">
+                        <div class="container-fluid">
+                            <p>No parameters available</p>
+                        </div>
+                    </div>
+
+                    <!-- Negation -->
+                    <div class="tab-pane" id="negation">
+                        <div class="container-fluid">
+                            <p>No parameters available</p>
+                        </div>
+                    </div>
+
+                    <!-- Grayscale -->
+                    <div class="tab-pane" id="grayscale">
+                        <div class="container-fluid">
+                            <p>No parameters available</p>
+                        </div>
+                    </div>
+
+                    <!-- Brightness -->
+                    <div class="tab-pane" id="brightness">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-3">
+                                    <label for="brightness-offset">Brightness offset:</label>
+                                    <div class="input-group">
+                                        <div class="row flex-fill align-items-center mx-0 px-2 border rounded-left">
+                                            <input class="custom-range" id="brightness-offset" type="range" value="0" min="-255" max="255" step="1"
+                                             oninput="$(this).parents('.input-group').find('.input-group-text').html($(this).val())">
+                                        </div>
+                                        <div class="input-group-append"><span class="input-group-text d-block" style="width: 4em">0</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contrast -->
+                    <div class="tab-pane" id="contrast">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-3">
+                                    <label for="contrast-factor">Contrast factor:</label>
+                                    <div class="input-group">
+                                        <div class="row flex-fill align-items-center mx-0 px-2 border rounded-left">
+                                            <input class="custom-range" id="contrast-factor" type="range" value="1" min="0" max="5" step="0.1"
+                                             oninput="$(this).parents('.input-group').find('.input-group-text').html($(this).val())">
+                                        </div>
+                                        <div class="input-group-append"><span class="input-group-text d-block" style="width: 3.5em">1</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Posterization -->
+                    <div class="tab-pane" id="posterization">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-3">
+                                    <label for="posterization-red-bits">Red bits (to keep):</label>
+                                    <div class="input-group">
+                                        <div class="row flex-fill align-items-center mx-0 px-2 border rounded-left">
+                                            <input class="custom-range" id="posterization-red-bits" type="range" value="2" min="1" max="8" step="1"
+                                             oninput="$(this).parents('.input-group').find('.input-group-text').html($(this).val() + ' bits')">
+                                        </div>
+                                        <div class="input-group-append"><span class="input-group-text">2 bits</span></div>
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <label for="posterization-green-bits">Green bits (to keep):</label>
+                                    <div class="input-group">
+                                        <div class="row flex-fill align-items-center mx-0 px-2 border rounded-left">
+                                            <input class="custom-range" id="posterization-green-bits" type="range" value="2" min="1" max="8" step="1"
+                                             oninput="$(this).parents('.input-group').find('.input-group-text').html($(this).val() + ' bits')">
+                                        </div>
+                                        <div class="input-group-append"><span class="input-group-text">2 bits</span></div>
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <label for="posterization-blue-bits">Blue bits (to keep):</label>
+                                    <div class="input-group">
+                                        <div class="row flex-fill align-items-center mx-0 px-2 border rounded-left">
+                                            <input class="custom-range" id="posterization-blue-bits" type="range" value="2" min="1" max="8" step="1"
+                                             oninput="$(this).parents('.input-group').find('.input-group-text').html($(this).val() + ' bits')">
+                                        </div>
+                                        <div class="input-group-append"><span class="input-group-text">2 bits</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Threshold -->
+                    <div class="tab-pane" id="threshold">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-3">
+                                    <label for="threshold-value">Threshold value:</label>
+                                    <div class="input-group">
+                                        <div class="row flex-fill align-items-center mx-0 px-2 border rounded-left">
+                                            <input class="custom-range" id="threshold-value" type="range" value="128" min="1" max="255" step="1"
+                                             oninput="$(this).parents('.input-group').find('.input-group-text').html($(this).val())">
+                                        </div>
+                                        <div class="input-group-append"><span class="input-group-text d-block" style="width: 3.5em">128</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Comic colour -->
+                    <div class="tab-pane" id="comic-color">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-3">
+                                    <label for="comic-color-saturation">Saturation multiplier:</label>
+                                    <div class="input-group">
+                                        <div class="row flex-fill align-items-center mx-0 px-2 border rounded-left">
+                                            <input class="custom-range" id="comic-color-saturation" type="range" value="2" min="1" max="8" step="1"
+                                             oninput="$(this).parents('.input-group').find('.input-group-text > span').html($(this).val())">
+                                        </div>
+                                        <div class="input-group-append"><span class="input-group-text">&times; <span>2</span></span></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Automatic contrast -->
+                    <div class="tab-pane" id="auto-contrast">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-3">
+                                    <label for="auto-contrast-type">Type:</label>
+                                    <select class="custom-select" id="auto-contrast-type">
+                                        <option value="gray">Gray Level</option>
+                                        <option value="color">Individual Colour</option>
+                                    </select>
+                                </div>
+                                <div class="col-4">
+                                    <label for="auto-contrast-percentage">Percentage of pixels to ignore:</label>
+                                    <div class="input-group">
+                                        <div class="row flex-fill align-items-center mx-0 px-2 border rounded-left">
+                                            <input class="custom-range" id="auto-contrast-percentage" type="range" value="5" min="0" max="50" step="1"
+                                             oninput="$(this).parents('.input-group').find('.input-group-text > span').html($(this).val())">
+                                        </div>
+                                        <div class="input-group-append"><span class="input-group-text d-block" style="width: 4em"><span>5</span>%</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Todo: mini-project -->
+                    <!-- Unsharp mask filter -->
+                    <div class="tab-pane" id="unsharp-mask">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-3">
+                                    <label for="unsharp-result-type">Result to be:</label>
+                                    <select class="custom-select" id="unsharp-result-type">
+                                        <option value="color">Colourful</option>
+                                        <option value="gray">GrayScale</option>
+                                    </select>
+                                </div>
+                                <div class="col-1">&nbsp;</div>
+                                <div class="col-4">
+                                    <label for="unsharp-show-highpass-grayscale">Show highpass detail of grayscale: </label>
+                                    <div class="input-group">
+                                        <input class="form-control toggle-control" id="unsharp-show-highpass-grayscale" type="checkbox" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row mt-2">
+                                <div class="col-4">
+                                    <label for="unsharp-mask-amount">Amount:</label>
+                                    <div class="input-group">
+                                        <div class="row flex-fill align-items-center mx-0 px-2 border rounded-left">
+                                            <input class="custom-range" id="unsharp-mask-amount" type="range" value="45" min="0" max="100" step="1"
+                                             oninput="$(this).parents('.input-group').find('.input-group-text > span').html($(this).val())">
+                                        </div>
+                                        <div class="input-group-append"><span class="input-group-text d-block" style="width: 4em"><span>45</span></div>
+                                    </div>
+                                </div>
+								<div class="col-4">
+                                    <label for="unsharp-mask-radius">Radius:</label>
+                                    <div class="input-group">
+                                        <div class="row flex-fill align-items-center mx-0 px-2 border rounded-left">
+                                            <input class="custom-range" id="unsharp-mask-radius" type="range" value="5" min="1" max="9" step="1"
+                                             oninput="$(this).parents('.input-group').find('.input-group-text > span').html($(this).val())">
+                                        </div>
+                                        <div class="input-group-append"><span class="input-group-text d-block" style="width: 4em"><span>5</span></div>
+                                    </div>
+                                </div>
+								<div class="col-4">
+                                    <label for="unsharp-mask-threshold">Threshold value:</label>
+                                    <div class="input-group">
+                                        <div class="row flex-fill align-items-center mx-0 px-2 border rounded-left">
+                                            <input class="custom-range" id="unsharp-mask-threshold" type="range" value="32" min="0" max="255" step="1"
+                                             oninput="$(this).parents('.input-group').find('.input-group-text').html($(this).val())">
+                                        </div>
+                                        <div class="input-group-append"><span class="input-group-text d-block" style="width: 3.5em">32</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-4">&nbsp;</div>
+                                <div class="col-4">
+                                    <label for="unsharp-gaussian-kernel-size">Gaussian Blur kernel size:</label>
+                                    <div class="input-group">
+                                        <div class="row flex-fill align-items-center mx-0 px-2 border rounded-left">
+                                            <input class="custom-range" id="unsharp-gaussian-kernel-size" type="range" value="13" min="5" max="21" step="2"
+                                             oninput="$(this).parents('.input-group').find('.input-group-text > span').html($(this).val())">
+                                        </div>
+                                        <div class="input-group-append"><span class="input-group-text"><span>13</span> &times; <span>13</span></span></div>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <label for="unsharp-use-suggested-size">Use suggested kernel size: </label>
+                                    <div class="input-group">
+                                        <input class="form-control toggle-control" id="unsharp-use-suggested-size" type="checkbox" checked/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Blur -->
+                    <div class="tab-pane" id="blur">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-3">
+                                    <label for="blur-input">Input:</label>
+                                    <select class="custom-select" id="blur-input">
+                                        <option value="original">Original Image</option>
+                                        <option value="processed">Processed Image</option>
+                                    </select>
+                                </div>
+                                <div class="col-3">
+                                    <label for="blur-kernel-size">Kernel size:</label>
+                                    <div class="input-group">
+                                        <div class="row flex-fill align-items-center mx-0 px-2 border rounded-left">
+                                            <input class="custom-range" id="blur-kernel-size" type="range" value="3" min="3" max="9" step="2"
+                                             oninput="$(this).parents('.input-group').find('.input-group-text > span').html($(this).val())">
+                                        </div>
+                                        <div class="input-group-append"><span class="input-group-text"><span>3</span> &times; <span>3</span></span></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Todo: mini-project -->
+                    <!-- Gaussian Blur -->
+                    <div class="tab-pane" id="gaussian-blur">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-3">
+                                    <label for="gaussian-blur-input">Input:</label>
+                                    <select class="custom-select" id="gaussian-blur-input">
+                                        <option value="original">Original Image</option>
+                                        <option value="processed">Processed Image</option>
+                                    </select>
+                                </div>
+                                <div class="col-4">
+                                    <label for="gaussian-blur-radius">Gaussian blur radius: </label>
+                                    <div class="input-group">
+                                        <div class="row flex-fill align-items-center mx-0 px-2 border rounded-left">
+                                            <input class="custom-range" id="gaussian-blur-radius" type="range" value="5" min="1" max="9" step="1"
+                                             oninput="$(this).parents('.input-group').find('.input-group-text > span').html($(this).val())">
+                                        </div>
+                                        <div class="input-group-append"><span class="input-group-text d-block" style="width: 4em"><span>5</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row mt-2">
+                                <div class="col-3">&nbsp;</div>
+                                <div class="col-4">
+                                    <label for="gaussian-blur-kernel-size">Gaussian Blur kernel size:</label>
+                                    <div class="input-group">
+                                        <div class="row flex-fill align-items-center mx-0 px-2 border rounded-left">
+                                            <input class="custom-range" id="gaussian-blur-kernel-size" type="range" value="13" min="5" max="21" step="2"
+                                             oninput="$(this).parents('.input-group').find('.input-group-text > span').html($(this).val())">
+                                        </div>
+                                        <div class="input-group-append"><span class="input-group-text"><span>13</span> &times; <span>13</span></span></div>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <label for="gaussian-blur-use-suggested-size">Use suggested kernel size: </label>
+                                    <div class="input-group">
+                                        <input class="form-control toggle-control" id="gaussian-blur-use-suggested-size" type="checkbox" checked/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Kuwahara filter -->
+                    <div class="tab-pane" id="kuwahara">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-3">
+                                    <label for="kuwahara-input">Input:</label>
+                                    <select class="custom-select" id="kuwahara-input">
+                                        <option value="original">Original Image</option>
+                                        <option value="processed">Processed Image</option>
+                                    </select>
+                                </div>
+                                <div class="col-4">
+                                    <label for="kuwahara-filter-size">Filter size:</label>
+                                    <div class="input-group">
+                                        <div class="row flex-fill align-items-center mx-0 px-2 border rounded-left">
+                                            <input class="custom-range" id="kuwahara-filter-size" type="range" value="5" min="5" max="13" step="4"
+                                             oninput="$(this).parents('.input-group').find('.input-group-text > span').html($(this).val())">
+                                        </div>
+                                        <div class="input-group-append">
+                                            <span class="input-group-text d-block" style="width: 5.5em"><span>5</span> &times; <span>5</span></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Ordered dithering -->
+                    <div class="tab-pane" id="dither">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-3">
+                                    <label for="dither-input">Input:</label>
+                                    <select class="custom-select" id="dither-input">
+                                        <option value="original">Original Image</option>
+                                        <option value="processed">Processed Image</option>
+                                    </select>
+                                </div>
+                                <div class="col-3">
+                                    <label for="dither-matrix-type">Matrix type:</label>
+                                    <select class="custom-select" id="dither-matrix-type">
+                                        <option value="bayer2">Bayer's 2&times;2 Matrix</option>
+                                        <option value="bayer4">Bayer's 4&times;4 Matrix</option>
+                                        <option value="line">Diagonal Lines</option>
+                                        <option value="diamond">Diamonds</option>
+                                    </select>
+                                </div>
+                                <div class="col-3">
+                                    <label for="dither-transparent">White shown as transparent:</label>
+                                    <div class="input-group">
+                                        <input class="form-control toggle-control" id="dither-transparent" type="checkbox" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sobel edge -->
+                    <div class="tab-pane" id="sobel">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-3">
+                                    <label for="sobel-input">Input:</label>
+                                    <select class="custom-select" id="sobel-input">
+                                        <option value="original">Original Image</option>
+                                        <option value="processed">Processed Image</option>
+                                    </select>
+                                </div>
+                                <div class="col-3">
+                                    <label for="sobel-threshold">Threshold value:</label>
+                                    <div class="input-group">
+                                        <div class="row flex-fill align-items-center mx-0 px-2 border rounded-left">
+                                            <input class="custom-range" id="sobel-threshold" type="range" value="128" min="0" max="255" step="1"
+                                             oninput="$(this).parents('.input-group').find('.input-group-text').html($(this).val())">
+                                        </div>
+                                        <div class="input-group-append"><span class="input-group-text d-block" style="width: 3.5em">128</span></div>
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <label for="sobel-blur">Blur before edge detection:</label>
+                                    <div class="input-group">
+                                        <input class="form-control toggle-control" id="sobel-blur" type="checkbox" />
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <label for="sobel-blur-kernel-size">Blur kernel size:</label>
+                                    <div class="input-group">
+                                        <div class="row flex-fill align-items-center mx-0 px-2 border rounded-left">
+                                            <input class="custom-range" id="sobel-blur-kernel-size" type="range" value="3" min="3" max="9" step="2"
+                                             oninput="$(this).parents('.input-group').find('.input-group-text > span').html($(this).val())">
+                                        </div>
+                                        <div class="input-group-append"><span class="input-group-text"><span>3</span> &times; <span>3</span></span></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row mt-2">
+                                <div class="col-3">&nbsp;</div>
+                                <div class="col-3">
+                                    <label for="sobel-flip">Flip edge colour:</label>
+                                    <div class="input-group">
+                                        <input class="form-control toggle-control" id="sobel-flip" type="checkbox" />
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <label for="sobel-transparent">Non-edge shown as transparent:</label>
+                                    <div class="input-group">
+                                        <input class="form-control toggle-control" id="sobel-transparent" type="checkbox" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <br>
+
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/gh/gitbrent/bootstrap4-toggle@3.6.0/js/bootstrap4-toggle.min.js"></script>
+
+    <script src="js/imageproc.js"></script>
+    <script src="js/base.js"></script>
+    <script src="js/comic.js"></script>
+    <script src="js/unsharpMask.js"></script>
+    <script src="js/blur.js"></script>
+    <script src="js/gaussianBlur.js"></script>
+    <script src="js/kuwahara.js"></script>
+    <script src="js/dither.js"></script>
+    <script src="js/outline.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/layers.js"></script>
+</body>
+</html>
